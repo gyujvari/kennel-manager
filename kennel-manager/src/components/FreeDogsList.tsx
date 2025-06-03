@@ -4,7 +4,7 @@ import DogComponent from "./Dog";
 
 interface Props {
   dogs: Dog[];
-  onDropDog: (dogId: number) => void; // drop a free dog listre
+  onDropDog: (dogId: number) => void;
   onDragStartDog: (e: React.DragEvent<HTMLDivElement>, dogId: number) => void;
 }
 
