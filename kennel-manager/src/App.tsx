@@ -22,17 +22,21 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <h1>Dog Kennel Manager</h1>
+    <div className="min-h-screen bg-gray-100 p-6 font-sans">
+      <h1 className="text-3xl font-bold text-center mb-8">
+        Dog Kennel Manager
+      </h1>
+
       <Toolbar onEdit={startEdit} onSave={saveEdit} onCancel={cancelEdit} />
-      <div className="kennel-container">
+
+      <div className="kennel-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
         {kennelData.kennels.map((kennel) => (
           <Kennel key={kennel.id} kennel={kennel} />
         ))}
       </div>
+
       <FreeDogsList dogs={kennelData.freeDogs} />
     </div>
   );
 }
-
 export default App;
