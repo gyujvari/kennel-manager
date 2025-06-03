@@ -4,17 +4,40 @@ import Dog from "./Dog";
 
 interface Props {
   kennel: KennelType;
+  onDropDog: (dogId: number, kennelId: number) => void;
+  onDragOver?: (e: React.DragEvent<HTMLDivElement>) => void;
+  onDragStartDog: (e: React.DragEvent<HTMLDivElement>, dogId: number) => void;
 }
 
-const Kennel: React.FC<Props> = ({ kennel }) => {
+const Kennel: React.FC<Props> = ({
+  kennel,
+  onDropDog,
+  onDragOver,
+  onDragStartDog,
+}) => {
   return (
-    <div className="bg-white border border-gray-400 rounded-lg p-4 flex flex-col shadow-sm">
+    <div
+      className="bg-white border border-gray-400 rounded-lg p-4 flex flex-col shadow-sm"
+      onDrop={(e) => {
+        e.preventDefault();
+        const dogId = Number(e.dataTransfer.getData("text/plain"));
+        onDropDog(dogId, kennel.id);
+      }}
+      onDragOver={(e) => onDragOver && onDragOver(e)}
+    >
       <h3 className="text-lg font-bold mb-4">{kennel.name}</h3>
       <div className="flex flex-col space-y-2 flex-grow overflow-auto min-h-[100px]">
         {kennel.dogs.length === 0 ? (
           <p className="text-gray-400 italic">No dogs.</p>
         ) : (
-          kennel.dogs.map((dog) => <Dog key={dog.id} dog={dog} />)
+          kennel.dogs.map((dog) => (
+            <Dog
+              key={dog.id}
+              dog={dog}
+              draggable
+              onDragStart={onDragStartDog}
+            />
+          ))
         )}
       </div>
     </div>
