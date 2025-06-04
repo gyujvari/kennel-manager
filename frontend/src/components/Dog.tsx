@@ -4,7 +4,7 @@ import { Dog as DogType } from "../types";
 interface Props {
   dog: DogType;
   draggable?: boolean;
-  onDragStart?: (event: React.DragEvent<HTMLDivElement>, dogId: number) => void;
+  onDragStart?: (event: React.DragEvent<HTMLDivElement>, dogId: string) => void;
 }
 
 const Dog: React.FC<Props> = ({ dog, draggable = false, onDragStart }) => {

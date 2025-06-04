@@ -4,9 +4,9 @@ import Dog from "./Dog";
 
 interface Props {
   kennel: KennelType;
-  onDropDog: (dogId: number, kennelId: number) => void;
+  onDropDog: (dogId: string, kennelId: string) => void;
   onDragOver?: (e: React.DragEvent<HTMLDivElement>) => void;
-  onDragStartDog: (e: React.DragEvent<HTMLDivElement>, dogId: number) => void;
+  onDragStartDog: (e: React.DragEvent<HTMLDivElement>, dogId: string) => void;
 }
 
 const Kennel: React.FC<Props> = ({
@@ -20,7 +20,7 @@ const Kennel: React.FC<Props> = ({
       className="bg-white border border-gray-400 rounded-lg p-4 flex flex-col shadow-sm"
       onDrop={(e) => {
         e.preventDefault();
-        const dogId = Number(e.dataTransfer.getData("text/plain"));
+        const dogId = e.dataTransfer.getData("text/plain");
         onDropDog(dogId, kennel.id);
       }}
       onDragOver={(e) => onDragOver && onDragOver(e)}

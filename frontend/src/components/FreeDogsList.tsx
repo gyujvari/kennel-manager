@@ -4,8 +4,8 @@ import DogComponent from "./Dog";
 
 interface Props {
   dogs: Dog[];
-  onDropDog: (dogId: number) => void;
-  onDragStartDog: (e: React.DragEvent<HTMLDivElement>, dogId: number) => void;
+  onDropDog: (dogId: string) => void;
+  onDragStartDog: (e: React.DragEvent<HTMLDivElement>, dogId: string) => void;
 }
 
 const FreeDogsList: React.FC<Props> = ({ dogs, onDropDog, onDragStartDog }) => {
@@ -14,7 +14,7 @@ const FreeDogsList: React.FC<Props> = ({ dogs, onDropDog, onDragStartDog }) => {
       className="bg-gray-50 border border-gray-300 rounded-md p-4 w-full max-w-md"
       onDrop={(e) => {
         e.preventDefault();
-        const dogId = Number(e.dataTransfer.getData("text/plain"));
+        const dogId = e.dataTransfer.getData("text/plain");
         onDropDog(dogId);
       }}
       onDragOver={(e) => e.preventDefault()}

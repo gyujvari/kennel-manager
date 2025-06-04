@@ -1,109 +1,89 @@
-import { useCallback } from "react";
-import { Dog, KennelData } from "../types";
+import { KennelData, Dog } from "../types";
 
 export const useDragDrop = (
   kennelData: KennelData,
   setKennelData: React.Dispatch<React.SetStateAction<KennelData>>,
   isEditing: boolean
 ) => {
-  const handleDragStart = useCallback(
-    (e: React.DragEvent<HTMLDivElement>, dogId: number) => {
-      if (!isEditing) {
-        e.preventDefault();
-        return;
-      }
-      e.dataTransfer.setData("text/plain", dogId.toString());
-      e.dataTransfer.effectAllowed = "move";
-    },
-    [isEditing]
-  );
+  const handleDropToKennel = (dogId: string, kennelId: string) => {
+    if (!isEditing) return;
 
-  const handleDropToKennel = useCallback(
-    (dogId: number, kennelId: number) => {
-      if (!isEditing) return;
-
-      setKennelData((prev) => {
-        let movedDog: Dog | undefined;
-
-        const newKennels = prev.kennels.map((kennel) => {
-          const filteredDogs = kennel.dogs.filter((dog) => {
-            if (dog.id === dogId) {
-              movedDog = dog;
-              return false;
+    setKennelData((prevData) => {
+      const updatedKennels = prevData.kennels.map((kennel) => {
+        if (kennel.id === kennelId) {
+          const dogExists = kennel.dogs.find((dog) => dog.id === dogId);
+          if (!dogExists) {
+            const dogToAdd = prevData.freeDogs.find((dog) => dog.id === dogId);
+            if (dogToAdd) {
+              return {
+                ...kennel,
+                dogs: [...kennel.dogs, dogToAdd],
+              };
             }
-            return true;
-          });
-          return { ...kennel, dogs: filteredDogs };
-        });
+          }
+        }
+        return kennel;
+      });
 
-        let newFreeDogs = prev.freeDogs.filter((dog) => {
+      const updatedFreeDogs = prevData.freeDogs.filter(
+        (dog) => dog.id !== dogId
+      );
+
+      const kennelsWithoutDog = updatedKennels.map((kennel) => ({
+        ...kennel,
+        dogs: kennel.dogs.filter(
+          (dog) => dog.id !== dogId || kennel.id === kennelId
+        ),
+      }));
+
+      return {
+        ...prevData,
+        kennels: kennelsWithoutDog,
+        freeDogs: updatedFreeDogs,
+      };
+    });
+  };
+
+  const handleDropToFreeDogs = (dogId: string) => {
+    if (!isEditing) return;
+
+    setKennelData((prevData) => {
+      let dogToFree: Dog | null = null;
+      const updatedKennels = prevData.kennels.map((kennel) => {
+        const updatedDogs = kennel.dogs.filter((dog) => {
           if (dog.id === dogId) {
-            movedDog = dog;
+            dogToFree = dog;
             return false;
           }
           return true;
         });
-
-        if (!movedDog) return prev;
-
-        const targetKennel = newKennels.find((k) => k.id === kennelId);
-        if (targetKennel && targetKennel.dogs.length >= 2) {
-          alert("A kennel csak 2 kutyát tartalmazhat!");
-          return prev;
-        }
-
-        const kennelsUpdated = newKennels.map((kennel) => {
-          if (kennel.id === kennelId) {
-            return { ...kennel, dogs: [...kennel.dogs, movedDog!] };
-          }
-          return kennel;
-        });
-
         return {
-          ...prev,
-          kennels: kennelsUpdated,
-          freeDogs: newFreeDogs,
+          ...kennel,
+          dogs: updatedDogs,
         };
       });
-    },
-    [isEditing, setKennelData]
-  );
 
-  const handleDropToFreeDogs = useCallback(
-    (dogId: number) => {
-      if (!isEditing) return;
-
-      setKennelData((prev) => {
-        let movedDog: Dog | undefined;
-
-        const newKennels = prev.kennels.map((kennel) => {
-          const filteredDogs = kennel.dogs.filter((dog) => {
-            if (dog.id === dogId) {
-              movedDog = dog;
-              return false;
-            }
-            return true;
-          });
-          return { ...kennel, dogs: filteredDogs };
-        });
-
-        if (!movedDog) return prev;
-
+      if (dogToFree) {
         return {
-          ...prev,
-          kennels: newKennels,
-          freeDogs: [...prev.freeDogs, movedDog],
+          ...prevData,
+          kennels: updatedKennels,
+          freeDogs: [...prevData.freeDogs, dogToFree],
         };
-      });
-    },
-    [isEditing, setKennelData]
-  );
+      }
+      return prevData;
+    });
+  };
+
+  const handleDragStart = (
+    e: React.DragEvent<HTMLDivElement>,
+    dogId: string
+  ) => {
+    e.dataTransfer.setData("text/plain", dogId);
+  };
 
   return {
-    handleDragStart,
     handleDropToKennel,
     handleDropToFreeDogs,
+    handleDragStart,
   };
 };
-
-export default useDragDrop;

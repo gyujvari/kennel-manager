@@ -1,19 +1,75 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
-import { KennelData } from "./types";
-import Kennel from "./components/Kennel";
+import { KennelData, Dog, Kennel } from "./types";
+import KennelComponent from "./components/Kennel";
 import Toolbar from "./components/Toolbar";
 import FreeDogsList from "./components/FreeDogsList";
-import initialData from "./data/initialData.json";
 import { useDragDrop } from "./hooks/useDragDrop";
 
 function App() {
-  const [kennelData, setKennelData] = useState<KennelData>(initialData);
+  const [kennelData, setKennelData] = useState<KennelData>({
+    kennels: [],
+    freeDogs: [],
+  });
   const [isEditing, setIsEditing] = useState(false);
   const [backupData, setBackupData] = useState<KennelData | null>(null);
 
+  const API_BASE = "http://localhost:5000";
+
   const { handleDragStart, handleDropToKennel, handleDropToFreeDogs } =
     useDragDrop(kennelData, setKennelData, isEditing);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        // Lekérjük a kennels-t és a dogs-t az API-ból
+        const kennelsRes = await fetch(`${API_BASE}/api/kennels`);
+        const dogsRes = await fetch(`${API_BASE}/api/dogs`);
+
+        const kennelsFromApi: { _id: string; name: string }[] =
+          await kennelsRes.json();
+        const dogsFromApi: {
+          _id: string;
+          name: string;
+          chipNumber: string;
+          kennelId?: string;
+        }[] = await dogsRes.json();
+
+        // Átalakítjuk a kennels adatot Kennel[]-re (minden kennelhez üres dogs tömb)
+        const kennels: Kennel[] = kennelsFromApi.map((k) => ({
+          id: k._id as unknown as string,
+          name: k.name,
+          dogs: [],
+        }));
+
+        const freeDogs: Dog[] = [];
+
+        // Minden kutyát beosztunk kennelhez vagy szabad kutyákhoz
+        dogsFromApi.forEach((dog) => {
+          const dogObj: Dog = {
+            id: dog._id,
+            name: dog.name,
+            chipNumber: dog.chipNumber,
+          };
+
+          if (dog.kennelId) {
+            // string === string összehasonlítás
+            const kennel = kennels.find((k) => k.id === dog.kennelId);
+            if (kennel) kennel.dogs.push(dogObj);
+            else freeDogs.push(dogObj);
+          } else {
+            freeDogs.push(dogObj);
+          }
+        });
+
+        setKennelData({ kennels, freeDogs });
+      } catch (err) {
+        console.error("API fetch error:", err);
+      }
+    }
+
+    fetchData();
+  }, []);
 
   const startEdit = () => {
     setIsEditing(true);
@@ -24,6 +80,7 @@ function App() {
     setIsEditing(false);
     setBackupData(null);
     console.log("Saved:", kennelData);
+    // Itt API hívást adhatsz hozzá az adatok mentéséhez
   };
 
   const cancelEdit = () => {
@@ -42,8 +99,8 @@ function App() {
       <Toolbar onEdit={startEdit} onSave={saveEdit} onCancel={cancelEdit} />
 
       <div className="kennel-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
-        {kennelData.kennels.map((kennel) => (
-          <Kennel
+        {kennelData.kennels.map((kennel: any) => (
+          <KennelComponent
             key={kennel.id}
             kennel={kennel}
             onDropDog={handleDropToKennel}
