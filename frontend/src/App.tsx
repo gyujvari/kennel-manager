@@ -76,13 +76,40 @@ function App() {
     setBackupData(kennelData);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     setIsEditing(false);
     setBackupData(null);
-    console.log("Saved:", kennelData);
-    // Itt API hívást adhatsz hozzá az adatok mentéséhez
-  };
 
+    try {
+      // Végigmegyünk az összes kennel kutyáin
+      for (const kennel of kennelData.kennels) {
+        for (const dog of kennel.dogs) {
+          await fetch(`${API_BASE}/api/dogs/${dog.id}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ kennelId: kennel.id }),
+          });
+        }
+      }
+
+      // Szabad kutyák kennelId-jét töröljük
+      for (const dog of kennelData.freeDogs) {
+        await fetch(`${API_BASE}/api/dogs/${dog.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ kennelId: null }),
+        });
+      }
+
+      console.log("Changes saved to the backend!");
+    } catch (err) {
+      console.error("Failed to save changes:", err);
+    }
+  };
   const cancelEdit = () => {
     if (backupData) {
       setKennelData(backupData);
