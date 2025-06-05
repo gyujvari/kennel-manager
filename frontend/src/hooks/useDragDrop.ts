@@ -1,4 +1,5 @@
 import { KennelData, Dog } from "../types";
+import { toast } from "react-hot-toast";
 
 export const useDragDrop = (
   kennelData: KennelData,
@@ -9,36 +10,48 @@ export const useDragDrop = (
     if (!isEditing) return;
 
     setKennelData((prevData) => {
-      const updatedKennels = prevData.kennels.map((kennel) => {
-        if (kennel.id === kennelId) {
-          const dogExists = kennel.dogs.find((dog) => dog.id === dogId);
-          if (!dogExists) {
-            const dogToAdd = prevData.freeDogs.find((dog) => dog.id === dogId);
-            if (dogToAdd) {
-              return {
-                ...kennel,
-                dogs: [...kennel.dogs, dogToAdd],
-              };
-            }
-          }
-        }
-        return kennel;
-      });
+      const dogToAdd =
+        prevData.freeDogs.find((dog) => dog.id === dogId) ||
+        prevData.kennels
+          .flatMap((kennel) => kennel.dogs)
+          .find((dog) => dog.id === dogId);
+
+      if (!dogToAdd) return prevData;
+
+      const targetKennel = prevData.kennels.find(
+        (kennel) => kennel.id === kennelId
+      );
+
+      if (targetKennel && targetKennel.dogs.length >= 2) {
+        toast.error("Kennel is full! Maximum 2 dogs allowed.", {
+          id: "kennel-full",
+        });
+
+        return prevData;
+      }
+
+      const updatedKennels = prevData.kennels.map((kennel) => ({
+        ...kennel,
+        dogs: kennel.dogs.filter((dog) => dog.id !== dogId),
+      }));
 
       const updatedFreeDogs = prevData.freeDogs.filter(
         (dog) => dog.id !== dogId
       );
 
-      const kennelsWithoutDog = updatedKennels.map((kennel) => ({
-        ...kennel,
-        dogs: kennel.dogs.filter(
-          (dog) => dog.id !== dogId || kennel.id === kennelId
-        ),
-      }));
+      const finalKennels = updatedKennels.map((kennel) => {
+        if (kennel.id === kennelId) {
+          return {
+            ...kennel,
+            dogs: [...kennel.dogs, dogToAdd],
+          };
+        }
+        return kennel;
+      });
 
       return {
         ...prevData,
-        kennels: kennelsWithoutDog,
+        kennels: finalKennels,
         freeDogs: updatedFreeDogs,
       };
     });
@@ -49,6 +62,7 @@ export const useDragDrop = (
 
     setKennelData((prevData) => {
       let dogToFree: Dog | null = null;
+
       const updatedKennels = prevData.kennels.map((kennel) => {
         const updatedDogs = kennel.dogs.filter((dog) => {
           if (dog.id === dogId) {
@@ -70,6 +84,7 @@ export const useDragDrop = (
           freeDogs: [...prevData.freeDogs, dogToFree],
         };
       }
+
       return prevData;
     });
   };

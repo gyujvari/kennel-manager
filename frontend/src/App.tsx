@@ -5,6 +5,7 @@ import KennelComponent from "./components/Kennel";
 import Toolbar from "./components/Toolbar";
 import FreeDogsList from "./components/FreeDogsList";
 import { useDragDrop } from "./hooks/useDragDrop";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   const [kennelData, setKennelData] = useState<KennelData>({
@@ -14,7 +15,7 @@ function App() {
   const [isEditing, setIsEditing] = useState(false);
   const [backupData, setBackupData] = useState<KennelData | null>(null);
 
-  const API_BASE = "http://localhost:5000";
+  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
   const { handleDragStart, handleDropToKennel, handleDropToFreeDogs } =
     useDragDrop(kennelData, setKennelData, isEditing);
@@ -22,7 +23,6 @@ function App() {
   useEffect(() => {
     async function fetchData() {
       try {
-        // Lekérjük a kennels-t és a dogs-t az API-ból
         const kennelsRes = await fetch(`${API_BASE}/api/kennels`);
         const dogsRes = await fetch(`${API_BASE}/api/dogs`);
 
@@ -35,7 +35,6 @@ function App() {
           kennelId?: string;
         }[] = await dogsRes.json();
 
-        // Átalakítjuk a kennels adatot Kennel[]-re (minden kennelhez üres dogs tömb)
         const kennels: Kennel[] = kennelsFromApi.map((k) => ({
           id: k._id as unknown as string,
           name: k.name,
@@ -44,7 +43,6 @@ function App() {
 
         const freeDogs: Dog[] = [];
 
-        // Minden kutyát beosztunk kennelhez vagy szabad kutyákhoz
         dogsFromApi.forEach((dog) => {
           const dogObj: Dog = {
             id: dog._id,
@@ -53,7 +51,6 @@ function App() {
           };
 
           if (dog.kennelId) {
-            // string === string összehasonlítás
             const kennel = kennels.find((k) => k.id === dog.kennelId);
             if (kennel) kennel.dogs.push(dogObj);
             else freeDogs.push(dogObj);
@@ -81,7 +78,6 @@ function App() {
     setBackupData(null);
 
     try {
-      // Végigmegyünk az összes kennel kutyáin
       for (const kennel of kennelData.kennels) {
         for (const dog of kennel.dogs) {
           await fetch(`${API_BASE}/api/dogs/${dog.id}`, {
@@ -94,7 +90,6 @@ function App() {
         }
       }
 
-      // Szabad kutyák kennelId-jét töröljük
       for (const dog of kennelData.freeDogs) {
         await fetch(`${API_BASE}/api/dogs/${dog.id}`, {
           method: "PUT",
@@ -119,6 +114,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6 font-sans">
+      <Toaster position="top-center" />
       <h1 className="text-3xl font-bold text-center mb-8">
         Dog Kennel Manager
       </h1>

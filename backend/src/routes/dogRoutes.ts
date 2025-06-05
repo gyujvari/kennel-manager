@@ -18,13 +18,13 @@ router.post("/", async (req, res) => {
 });
 
 // PUT update dog's kennel
-router.put("/:id", async (req, res) => {
+router.put("/:id", async (req: any, res: any) => {
   const { id } = req.params;
   const { kennelId } = req.body;
   try {
     const dog = await Dog.findByIdAndUpdate(
       id,
-      { kennelId: kennelId || null }, // ha nincs kennelId, akkor töröljük
+      { kennelId: kennelId || null },
       { new: true }
     );
     if (!dog) return res.status(404).json({ error: "Dog not found" });
@@ -34,13 +34,5 @@ router.put("/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to update dog" });
   }
 });
-
-// DELETE dog
-// router.delete("/:id", async (req, res) => {
-//   const { id } = req.params;
-//   const dog = await Dog.findByIdAndDelete(id);
-//   if (!dog) return res.status(404).json({ error: "Dog not found" });
-//   res.json({ message: "Dog deleted" });
-// });
 
 export default router;
