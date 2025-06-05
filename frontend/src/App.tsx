@@ -123,7 +123,12 @@ function App() {
         Dog Kennel Manager
       </h1>
 
-      <Toolbar onEdit={startEdit} onSave={saveEdit} onCancel={cancelEdit} />
+      <Toolbar
+        onEdit={startEdit}
+        onSave={saveEdit}
+        onCancel={cancelEdit}
+        isEditing={isEditing}
+      />
 
       <div className="kennel-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
         {kennelData.kennels.map((kennel: any) => (
@@ -132,7 +137,10 @@ function App() {
             kennel={kennel}
             onDropDog={handleDropToKennel}
             onDragStartDog={handleDragStart}
-            onDragOver={(e) => e.preventDefault()}
+            onDragOver={(e: React.DragEvent<HTMLDivElement>) =>
+              e.preventDefault()
+            }
+            isEditing={isEditing}
           />
         ))}
       </div>
@@ -141,6 +149,7 @@ function App() {
         dogs={kennelData.freeDogs}
         onDropDog={handleDropToFreeDogs}
         onDragStartDog={handleDragStart}
+        isEditing={isEditing}
       />
     </div>
   );

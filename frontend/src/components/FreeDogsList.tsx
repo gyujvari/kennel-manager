@@ -8,27 +8,37 @@ interface Props {
   onDragStartDog: (e: React.DragEvent<HTMLDivElement>, dogId: string) => void;
 }
 
-const FreeDogsList: React.FC<Props> = ({ dogs, onDropDog, onDragStartDog }) => {
+const FreeDogsList: React.FC<Props & { isEditing: boolean }> = ({
+  dogs,
+  onDropDog,
+  onDragStartDog,
+  isEditing,
+}) => {
   return (
     <div
-      className="bg-gray-50 border border-gray-300 rounded-md p-4 w-full max-w-md"
+      className={`bg-white border border-gray-200 rounded-xl p-4 w-full max-w-md shadow-md transition
+      ${!isEditing ? "opacity-60 cursor-not-allowed" : ""}`}
       onDrop={(e) => {
+        if (!isEditing) return;
         e.preventDefault();
         const dogId = e.dataTransfer.getData("text/plain");
         onDropDog(dogId);
       }}
-      onDragOver={(e) => e.preventDefault()}
+      onDragOver={(e) => isEditing && e.preventDefault()}
     >
-      <h3 className="text-xl font-semibold mb-3">Unassigned Dogs</h3>
+      <h3 className="text-xl font-semibold text-gray-700 mb-3">
+        Unassigned Dogs
+      </h3>
       {dogs.length === 0 ? (
-        <p className="text-gray-500 italic">No free dogs.</p>
+        <p className="text-gray-400 italic">No free dogs.</p>
       ) : (
-        <div className="max-h-64 overflow-y-auto">
+        <div className="max-h-64 overflow-y-auto space-y-2">
           {dogs.map((dog) => (
             <DogComponent
+              isEditing={isEditing}
               key={dog.id}
               dog={dog}
-              draggable
+              draggable={isEditing}
               onDragStart={onDragStartDog}
             />
           ))}

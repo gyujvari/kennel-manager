@@ -9,32 +9,38 @@ interface Props {
   onDragStartDog: (e: React.DragEvent<HTMLDivElement>, dogId: string) => void;
 }
 
-const Kennel: React.FC<Props> = ({
+const Kennel: React.FC<Props & { isEditing: boolean }> = ({
   kennel,
   onDropDog,
   onDragOver,
   onDragStartDog,
+  isEditing,
 }) => {
   return (
     <div
-      className="bg-white border border-gray-400 rounded-lg p-4 flex flex-col shadow-sm"
+      className={`bg-white border border-gray-200 rounded-xl p-4 flex flex-col shadow-md transition
+    ${!isEditing ? "opacity-60 cursor-not-allowed" : ""}`}
       onDrop={(e) => {
+        if (!isEditing) return;
         e.preventDefault();
         const dogId = e.dataTransfer.getData("text/plain");
         onDropDog(dogId, kennel.id);
       }}
-      onDragOver={(e) => onDragOver && onDragOver(e)}
+      onDragOver={(e) => isEditing && onDragOver && onDragOver(e)}
     >
-      <h3 className="text-lg font-bold mb-4">{kennel.name}</h3>
+      <h3 className="text-lg font-semibold text-gray-700 mb-4">
+        {kennel.name}
+      </h3>
       <div className="flex flex-col space-y-2 flex-grow overflow-auto min-h-[100px]">
         {kennel.dogs.length === 0 ? (
           <p className="text-gray-400 italic">No dogs.</p>
         ) : (
           kennel.dogs.map((dog) => (
             <Dog
+              isEditing={isEditing}
               key={dog.id}
               dog={dog}
-              draggable
+              draggable={isEditing}
               onDragStart={onDragStartDog}
             />
           ))
