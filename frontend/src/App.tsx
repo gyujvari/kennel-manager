@@ -15,12 +15,14 @@ function App() {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [backupData, setBackupData] = useState<KennelData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const { handleDragStart, handleDropToKennel, handleDropToFreeDogs } =
     useDragDrop(kennelData, setKennelData, isEditing);
 
   useEffect(() => {
     async function fetchData() {
+      setLoading(true);
       try {
         const kennels = await fetchKennels();
         const dogs = await fetchDogs();
@@ -45,6 +47,8 @@ function App() {
         setKennelData({ kennels: kennelsWithDogs, freeDogs });
       } catch (err) {
         console.error("API fetch error:", err);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -97,28 +101,36 @@ function App() {
         onCancel={cancelEdit}
         isEditing={isEditing}
       />
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="w-12 h-12 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+          <span className="ml-4 text-gray-600">Loading...</span>
+        </div>
+      ) : (
+        <>
+          <div className="kennel-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
+            {kennelData.kennels.map((kennel) => (
+              <KennelComponent
+                key={kennel.id}
+                kennel={kennel}
+                onDropDog={handleDropToKennel}
+                onDragStartDog={handleDragStart}
+                onDragOver={(e) => e.preventDefault()}
+                isEditing={isEditing}
+              />
+            ))}
+          </div>
 
-      <div className="kennel-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
-        {kennelData.kennels.map((kennel) => (
-          <KennelComponent
-            key={kennel.id}
-            kennel={kennel}
-            onDropDog={handleDropToKennel}
-            onDragStartDog={handleDragStart}
-            onDragOver={(e) => e.preventDefault()}
-            isEditing={isEditing}
-          />
-        ))}
-      </div>
-
-      <div className="flex justify-center">
-        <FreeDogsList
-          dogs={kennelData.freeDogs}
-          onDropDog={handleDropToFreeDogs}
-          onDragStartDog={handleDragStart}
-          isEditing={isEditing}
-        />
-      </div>
+          <div className="flex justify-center">
+            <FreeDogsList
+              dogs={kennelData.freeDogs}
+              onDropDog={handleDropToFreeDogs}
+              onDragStartDog={handleDragStart}
+              isEditing={isEditing}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }
