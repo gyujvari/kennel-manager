@@ -24,6 +24,7 @@ const Dog: React.FC<Props> = ({
       ${!isEditing ? "opacity-60 cursor-not-allowed" : "cursor-grab"}
     `}
     >
+      asd
       <span className="font-medium">{dog.name}</span>
       <span className="text-gray-400 text-sm">(chip: {dog.chipNumber})</span>
     </div>
