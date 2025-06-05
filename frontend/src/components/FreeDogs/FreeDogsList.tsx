@@ -27,10 +27,10 @@ const FreeDogsList: React.FC<Props & { isEditing: boolean }> = ({
       onDragOver={(e) => isEditing && e.preventDefault()}
     >
       <h3 className="text-xl font-semibold text-gray-700 mb-3">
-        Unassigned Dogs
+        Dogs without kennels.
       </h3>
       {dogs.length === 0 ? (
-        <p className="text-gray-400 italic">No free dogs.</p>
+        <p className="text-gray-400 italic">No dogs.</p>
       ) : (
         <div className="max-h-64 overflow-y-auto space-y-2">
           {dogs.map((dog) => (

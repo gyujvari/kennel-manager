@@ -23,6 +23,6 @@ jobs:
 
       - name: Deploy Backend
         working-directory: backend
-        run: railway up --service backend --non-interactive
+        run: railway up --service backend -- --non-interactive
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

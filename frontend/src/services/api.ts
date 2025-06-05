@@ -7,6 +7,8 @@ export async function fetchKennels(): Promise<Kennel[]> {
   if (!res.ok) throw new Error("Failed to fetch kennels");
   const kennelsFromApi: { _id: string; name: string }[] = await res.json();
 
+  console.log(`${API_BASE}/api/kennels`);
+
   return kennelsFromApi.map((k) => ({
     id: k._id,
     name: k.name,
