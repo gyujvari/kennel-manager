@@ -1,5 +1,5 @@
 import React from "react";
-import { Dog as DogType } from "../types";
+import { Dog as DogType } from "../../types";
 
 interface Props {
   dog: DogType;

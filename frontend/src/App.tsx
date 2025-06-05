@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
 import { KennelData, Dog, Kennel } from "./types";
-import KennelComponent from "./components/Kennel";
-import Toolbar from "./components/Toolbar";
-import FreeDogsList from "./components/FreeDogsList";
+import KennelComponent from "./components/Kennel/Kennel";
+import Toolbar from "./components/Toolbar/Toolbar";
+import FreeDogsList from "./components/FreeDogs/FreeDogsList";
 import { useDragDrop } from "./hooks/useDragDrop";
 import { Toaster } from "react-hot-toast";
 import { fetchDogs, fetchKennels, updateDogKennel } from "./services/api";
@@ -111,12 +111,14 @@ function App() {
         ))}
       </div>
 
-      <FreeDogsList
-        dogs={kennelData.freeDogs}
-        onDropDog={handleDropToFreeDogs}
-        onDragStartDog={handleDragStart}
-        isEditing={isEditing}
-      />
+      <div className="flex justify-center">
+        <FreeDogsList
+          dogs={kennelData.freeDogs}
+          onDropDog={handleDropToFreeDogs}
+          onDragStartDog={handleDragStart}
+          isEditing={isEditing}
+        />
+      </div>
     </div>
   );
 }

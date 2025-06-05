@@ -1,6 +1,6 @@
 import React from "react";
-import { Dog } from "../types";
-import DogComponent from "./Dog";
+import { Dog } from "../../types";
+import DogComponent from "../Dog/Dog";
 
 interface Props {
   dogs: Dog[];

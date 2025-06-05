@@ -1,6 +1,6 @@
 import React from "react";
-import { Kennel as KennelType } from "../types";
-import Dog from "./Dog";
+import { Kennel as KennelType } from "../../types";
+import Dog from "../Dog/Dog";
 
 interface Props {
   kennel: KennelType;
