@@ -6,6 +6,7 @@ import Toolbar from "./components/Toolbar";
 import FreeDogsList from "./components/FreeDogsList";
 import { useDragDrop } from "./hooks/useDragDrop";
 import { Toaster } from "react-hot-toast";
+import { fetchDogs, fetchKennels, updateDogKennel } from "./services/api";
 
 function App() {
   const [kennelData, setKennelData] = useState<KennelData>({
@@ -15,51 +16,33 @@ function App() {
   const [isEditing, setIsEditing] = useState(false);
   const [backupData, setBackupData] = useState<KennelData | null>(null);
 
-  const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
-
   const { handleDragStart, handleDropToKennel, handleDropToFreeDogs } =
     useDragDrop(kennelData, setKennelData, isEditing);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const kennelsRes = await fetch(`${API_BASE}/api/kennels`);
-        const dogsRes = await fetch(`${API_BASE}/api/dogs`);
+        const kennels = await fetchKennels();
+        const dogs = await fetchDogs();
 
-        const kennelsFromApi: { _id: string; name: string }[] =
-          await kennelsRes.json();
-        const dogsFromApi: {
-          _id: string;
-          name: string;
-          chipNumber: string;
-          kennelId?: string;
-        }[] = await dogsRes.json();
-
-        const kennels: Kennel[] = kennelsFromApi.map((k) => ({
-          id: k._id as unknown as string,
-          name: k.name,
-          dogs: [],
+        const kennelsWithDogs: Kennel[] = kennels.map((k) => ({
+          ...k,
+          dogs: [] as Dog[],
         }));
 
         const freeDogs: Dog[] = [];
 
-        dogsFromApi.forEach((dog) => {
-          const dogObj: Dog = {
-            id: dog._id,
-            name: dog.name,
-            chipNumber: dog.chipNumber,
-          };
-
+        dogs.forEach((dog) => {
           if (dog.kennelId) {
-            const kennel = kennels.find((k) => k.id === dog.kennelId);
-            if (kennel) kennel.dogs.push(dogObj);
-            else freeDogs.push(dogObj);
+            const kennel = kennelsWithDogs.find((k) => k.id === dog.kennelId);
+            if (kennel) kennel.dogs.push(dog);
+            else freeDogs.push(dog);
           } else {
-            freeDogs.push(dogObj);
+            freeDogs.push(dog);
           }
         });
 
-        setKennelData({ kennels, freeDogs });
+        setKennelData({ kennels: kennelsWithDogs, freeDogs });
       } catch (err) {
         console.error("API fetch error:", err);
       }
@@ -80,24 +63,12 @@ function App() {
     try {
       for (const kennel of kennelData.kennels) {
         for (const dog of kennel.dogs) {
-          await fetch(`${API_BASE}/api/dogs/${dog.id}`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ kennelId: kennel.id }),
-          });
+          await updateDogKennel(dog.id, kennel.id);
         }
       }
 
       for (const dog of kennelData.freeDogs) {
-        await fetch(`${API_BASE}/api/dogs/${dog.id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ kennelId: null }),
-        });
+        await updateDogKennel(dog.id, null);
       }
 
       console.log("Changes saved to the backend!");
@@ -105,6 +76,7 @@ function App() {
       console.error("Failed to save changes:", err);
     }
   };
+
   const cancelEdit = () => {
     if (backupData) {
       setKennelData(backupData);
@@ -127,15 +99,13 @@ function App() {
       />
 
       <div className="kennel-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
-        {kennelData.kennels.map((kennel: any) => (
+        {kennelData.kennels.map((kennel) => (
           <KennelComponent
             key={kennel.id}
             kennel={kennel}
             onDropDog={handleDropToKennel}
             onDragStartDog={handleDragStart}
-            onDragOver={(e: React.DragEvent<HTMLDivElement>) =>
-              e.preventDefault()
-            }
+            onDragOver={(e) => e.preventDefault()}
             isEditing={isEditing}
           />
         ))}

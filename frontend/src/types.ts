@@ -4,6 +4,7 @@ export interface Dog {
   id: string;
   name: string;
   chipNumber: string;
+  kennelId?: string;
 }
 
 export interface Kennel {
